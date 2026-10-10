@@ -1,0 +1,12 @@
+title: CS2 stretched on a 24 inch screen with black bars
+description: Free tool to play CS2 stretched (4:3, 1280x960) on a 24 inch sized area of a 27, 32 inch or ultrawide monitor. Turns off when you quit the game.
+theme: jekyll-theme-cayman
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+exclude:
+  - "*.py"
+  - "*.pyw"
+  - "*.bat"
+  - "*.log"
+  - settings.json
