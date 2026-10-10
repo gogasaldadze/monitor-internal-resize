@@ -1,19 +1,23 @@
-# cs2-24inch
+# CS2 stretched on a 24" screen (black bars on a bigger monitor)
 
-Play CS2 stretched (1280x960 or whatever you use) on a 24" sized area of a bigger monitor, with black bars around it. Click START, it shrinks the screen and opens CS2. Quit CS2 and your normal desktop comes back.
+Play CS2 stretched (1280x960, 1280x1024, 1440x1080...) on a 24 inch sized area of a bigger monitor, with black bars around it. Made for people who moved to a 27", 32" or ultrawide monitor but still want the 24" feel they're used to in Counter-Strike.
+
+Click START, the screen shrinks to 24" and CS2 opens. Quit CS2 and your normal desktop comes back.
 
 ![screenshot](docs/gui.png)
+
+**[Download](https://github.com/gogasaldadze/monitor-internal-resize/releases/latest)**
 
 I made this because I moved to a 26.5" monitor and missed playing on 24". NVIDIA's desktop resize can do something similar but it applies to everything and you have to switch it on and off by hand.
 
 ## How it works
 
-It uses the Windows display API (`SetDisplayConfig`) to scale the desktop into a smaller rectangle in the middle of the screen. The monitor stays at its native resolution and refresh rate. Nothing gets saved, so if anything goes wrong a reboot puts everything back.
+It uses the Windows display API (`SetDisplayConfig`) to scale the desktop into a smaller rectangle in the middle of the screen. The monitor stays at its native resolution and refresh rate. Nothing gets saved, so if anything goes wrong a reboot puts everything back. No driver hacks, no registry edits, no NVIDIA Control Panel.
 
 ## Setup
 
 1. Install [Python](https://www.python.org/downloads/) (3.8 or newer, nothing else needed)
-2. Download this repo
+2. [Download](https://github.com/gogasaldadze/monitor-internal-resize/releases/latest) and unzip
 3. Double click `CS2 24-inch.bat`
 
 In the window:
@@ -42,6 +46,26 @@ Should work on any size. The area is always 16:9, so it looks like a real 24" mo
 | 34" 3440x1440 | 2294x1290 |
 
 Tested on an RTX 5080 with an ASUS XG27AQDMES. Let me know if it works on AMD/Intel.
+
+## FAQ
+
+**Can I play CS2 on a 24 inch size on my 27 inch monitor?**
+Yes, that's what this does. Set play size to 24 (or 24.5 like most tournament monitors) and your monitor size to 27.
+
+**Does it work with 4:3 stretched?**
+Yes. The 4:3 image is stretched to fill the 16:9 24" area, same as stretched on a real 24" monitor.
+
+**Can I use it without stretching, like 4:3 black bars or native 16:9?**
+Set the resolution to a 16:9 one like 1920x1080 for a smaller native looking screen. The picture is always scaled to fill the area.
+
+**Does it add input lag?**
+The GPU does the scaling, same as GPU scaling in the NVIDIA or AMD control panel.
+
+**Is it safe with VAC?**
+It doesn't touch the game files or memory. It only changes Windows display settings, the same kind of thing as changing your resolution in Windows.
+
+**Does it work for other games?**
+Uncheck "Launch CS2 on START" and it works in other games too (Valorant, Apex, Fortnite...) as long as they run in borderless or windowed fullscreen. Press STOP when you're done.
 
 ## Command line
 
