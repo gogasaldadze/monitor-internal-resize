@@ -1,8 +1,4 @@
-"""Thin ctypes wrapper around the Windows CCD API (QueryDisplayConfig / SetDisplayConfig).
-
-Only the parts needed to read and change the source resolution and the
-"desktop image region" (where the source image is placed on the panel) are wrapped.
-"""
+# ctypes bindings for QueryDisplayConfig / SetDisplayConfig
 import ctypes
 from ctypes import wintypes
 
@@ -14,17 +10,11 @@ QDC_VIRTUAL_MODE_AWARE = 0x10
 SDC_APPLY = 0x80
 SDC_USE_SUPPLIED_DISPLAY_CONFIG = 0x20
 SDC_VALIDATE = 0x40
-SDC_SAVE_TO_DATABASE = 0x200
+SDC_USE_DATABASE_CURRENT = 0x0F
 SDC_ALLOW_CHANGES = 0x400
 SDC_VIRTUAL_MODE_AWARE = 0x8000
 
-MODE_SOURCE = 1
-MODE_TARGET = 2
-MODE_DESKTOP_IMAGE = 3
-
 PATH_SUPPORT_VIRTUAL_MODE = 0x8
-INVALID_IDX = 0xFFFF
-
 DEVICE_INFO_GET_TARGET_NAME = 2
 
 ERRORS = {
@@ -53,7 +43,7 @@ class RECTL(ctypes.Structure):
                 ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
 
     def __repr__(self):
-        return f"({self.left},{self.top})-({self.right},{self.bottom}) [{self.right - self.left}x{self.bottom - self.top}]"
+        return f"{self.right - self.left}x{self.bottom - self.top} at ({self.left},{self.top})"
 
 
 class REGION2D(ctypes.Structure):
@@ -64,14 +54,9 @@ class PATH_SOURCE_INFO(ctypes.Structure):
     _fields_ = [("adapterId", LUID), ("id", ctypes.c_uint32),
                 ("modeInfoIdx", ctypes.c_uint32), ("statusFlags", ctypes.c_uint32)]
 
-    # Virtual-mode-aware layout: low 16 bits cloneGroupId, high 16 bits sourceModeInfoIdx
     @property
-    def source_mode_idx(self):
+    def source_mode_idx(self):  # upper 16 bits in virtual mode aware layout
         return self.modeInfoIdx >> 16
-
-    @source_mode_idx.setter
-    def source_mode_idx(self, v):
-        self.modeInfoIdx = (self.modeInfoIdx & 0xFFFF) | (v << 16)
 
 
 class PATH_TARGET_INFO(ctypes.Structure):
@@ -81,14 +66,9 @@ class PATH_TARGET_INFO(ctypes.Structure):
                 ("scanLineOrdering", ctypes.c_uint32), ("targetAvailable", wintypes.BOOL),
                 ("statusFlags", ctypes.c_uint32)]
 
-    # Virtual-mode-aware layout: low 16 bits desktopModeInfoIdx, high 16 bits targetModeInfoIdx
     @property
     def desktop_mode_idx(self):
         return self.modeInfoIdx & 0xFFFF
-
-    @desktop_mode_idx.setter
-    def desktop_mode_idx(self, v):
-        self.modeInfoIdx = (self.modeInfoIdx & 0xFFFF0000) | v
 
     @property
     def target_mode_idx(self):
@@ -157,8 +137,8 @@ def _check(rc, what):
         raise DisplayConfigError(rc, f"{what} failed: {ERRORS.get(rc, rc)}")
 
 
-def query(flags=QDC_ONLY_ACTIVE_PATHS | QDC_VIRTUAL_MODE_AWARE):
-    """Return (paths, modes) as ctypes arrays for the current active configuration."""
+def query():
+    flags = QDC_ONLY_ACTIVE_PATHS | QDC_VIRTUAL_MODE_AWARE
     while True:
         n_paths, n_modes = ctypes.c_uint32(), ctypes.c_uint32()
         _check(user32.GetDisplayConfigBufferSizes(flags, ctypes.byref(n_paths), ctypes.byref(n_modes)),
@@ -167,7 +147,7 @@ def query(flags=QDC_ONLY_ACTIVE_PATHS | QDC_VIRTUAL_MODE_AWARE):
         modes = (MODE_INFO * n_modes.value)()
         rc = user32.QueryDisplayConfig(flags, ctypes.byref(n_paths), paths,
                                        ctypes.byref(n_modes), modes, None)
-        if rc == 122:  # ERROR_INSUFFICIENT_BUFFER: config changed between calls, retry
+        if rc == 122:  # config changed in between, try again
             continue
         _check(rc, "QueryDisplayConfig")
         return paths[:n_paths.value], modes[:n_modes.value]
@@ -179,12 +159,17 @@ def apply(paths, modes, flags):
     _check(user32.SetDisplayConfig(len(paths), p, len(modes), m, flags), "SetDisplayConfig")
 
 
-def monitor_name(target):
+def target_name(target):
     req = TARGET_DEVICE_NAME()
     req.header.type = DEVICE_INFO_GET_TARGET_NAME
     req.header.size = ctypes.sizeof(req)
     req.header.adapterId = target.adapterId
     req.header.id = target.id
     if user32.DisplayConfigGetDeviceInfo(ctypes.byref(req)) != 0:
-        return "?"
-    return req.monitorFriendlyDeviceName
+        return None
+    return req
+
+
+def monitor_name(target):
+    req = target_name(target)
+    return req.monitorFriendlyDeviceName if req else "?"
