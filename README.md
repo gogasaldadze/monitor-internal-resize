@@ -1,84 +1,80 @@
 # CS2 stretched on a 24" screen (black bars on a bigger monitor)
 
-Play CS2 stretched (1280x960, 1280x1024, 1440x1080...) on a 24 inch sized area of a bigger monitor, with black bars around it. Made for people who moved to a 27", 32" or ultrawide monitor but still want the 24" feel they're used to in Counter-Strike.
-
-Click START, the screen shrinks to 24" and CS2 opens. Quit CS2 and your normal desktop comes back.
+Play CS2 stretched (4:3, 1280x960) on a **24 inch** sized area of your **27", 32" or ultrawide** monitor, with black bars around it. Like having a 24" esports monitor again.
 
 ![screenshot](docs/gui.png)
 
-**[Download](https://github.com/gogasaldadze/monitor-internal-resize/releases/latest)**
+## Download
 
-I made this because I moved to a 26.5" monitor and missed playing on 24". NVIDIA's desktop resize can do something similar but it applies to everything and you have to switch it on and off by hand.
+**[Download the latest version](https://github.com/gogasaldadze/monitor-internal-resize/releases/latest)** and unzip it anywhere.
 
-## How it works
+You also need [Python](https://www.python.org/downloads/) (free). When installing it, tick **"Add Python to PATH"**.
 
-It uses the Windows display API (`SetDisplayConfig`) to scale the desktop into a smaller rectangle in the middle of the screen. The monitor stays at its native resolution and refresh rate. Nothing gets saved, so if anything goes wrong a reboot puts everything back. No driver hacks, no registry edits, no NVIDIA Control Panel.
+## How to use
 
-## Setup
+1. Double click **`CS2 24-inch.bat`**
+2. Check the settings in the window (see below)
+3. Click **START**
 
-1. Install [Python](https://www.python.org/downloads/) (3.8 or newer, nothing else needed)
-2. [Download](https://github.com/gogasaldadze/monitor-internal-resize/releases/latest) and unzip
-3. Double click `CS2 24-inch.bat`
+The screen shrinks to 24" and CS2 opens. When you quit CS2, your screen goes back to normal by itself.
 
-In the window:
+### Settings
 
-* **Play size** is the screen size you want to play on (24, 24.5, 25...)
-* **Stretched resolution** should match what you use in CS2
-* **Your monitor** is read from the monitor automatically, but it's rounded to whole cm so type in the real size if it's off
-
-## CS2 settings
-
-Aspect ratio 4:3 and the same resolution as in the app.
-
-Fullscreen Windowed works best. Normal Fullscreen works too. CS2 resets the layout when it goes fullscreen and the app turns it back on right after. If you use Fullscreen, pick your monitor's exact refresh rate (for example 239.97 instead of 240), otherwise CS2 might switch the monitor to a lower resolution.
-
-## Other monitors
-
-Should work on any size. The area is always 16:9, so it looks like a real 24" monitor even on an ultrawide.
-
-| Monitor | 24" area |
+| Setting | What to put |
 |---|---|
-| 26.5" 2560x1440 | 2318x1304 |
-| 27" 2560x1440 | 2274x1280 |
-| 27" 1920x1080 | 1706x960 |
-| 32" 3840x2160 | 2878x1618 |
-| 32" 2560x1440 | 1920x1080 |
-| 34" 3440x1440 | 2294x1290 |
+| Play size | The screen size you want to play on. `24` or `24.5` |
+| Stretched resolution | The resolution you use in CS2. `1280x960` for most people |
+| Your monitor | Your real monitor size in inches, like `27` or `26.5` |
 
-Tested on an RTX 5080 with an ASUS XG27AQDMES. Let me know if it works on AMD/Intel.
+### CS2 video settings
+
+* Aspect ratio: **4:3**
+* Resolution: **same as in the app** (1280x960)
+* Display mode: **Fullscreen Windowed** (works best)
+
+Using normal Fullscreen? It works too, but set the refresh rate to your monitor's exact value (for example 239.97 Hz, not 240 Hz).
+
+## Turning it off
+
+It turns off by itself when you close CS2. You can also:
+
+* Click **STOP**
+* Close the window
+* Screen stuck? Click **"Restore normal screen"** in the app, or double click `normal-screen.bat`, or restart your PC
 
 ## FAQ
 
-**Can I play CS2 on a 24 inch size on my 27 inch monitor?**
-Yes, that's what this does. Set play size to 24 (or 24.5 like most tournament monitors) and your monitor size to 27.
-
-**Does it work with 4:3 stretched?**
-Yes. The 4:3 image is stretched to fill the 16:9 24" area, same as stretched on a real 24" monitor.
-
-**Can I use it without stretching, like 4:3 black bars or native 16:9?**
-Set the resolution to a 16:9 one like 1920x1080 for a smaller native looking screen. The picture is always scaled to fill the area.
-
-**Does it add input lag?**
-The GPU does the scaling, same as GPU scaling in the NVIDIA or AMD control panel.
+**Does it work on my monitor?**
+Any size and resolution should work. Tested on an RTX 5080 with a 26.5" 1440p monitor.
 
 **Is it safe with VAC?**
-It doesn't touch the game files or memory. It only changes Windows display settings, the same kind of thing as changing your resolution in Windows.
+It doesn't touch the game. It only changes Windows display settings, like changing your resolution.
 
-**Does it work for other games?**
-Uncheck "Launch CS2 on START" and it works in other games too (Valorant, Apex, Fortnite...) as long as they run in borderless or windowed fullscreen. Press STOP when you're done.
+**Input lag?**
+The scaling is done by your graphics card, the same as GPU scaling in NVIDIA or AMD settings.
 
-## Command line
+**Other games?**
+Uncheck "Launch CS2 on START". Works in games running in borderless or windowed fullscreen. Click STOP when done.
+
+<details>
+<summary>How it works / command line</summary>
+
+It uses the Windows display API (`SetDisplayConfig`) to scale the desktop into a smaller rectangle in the middle of the screen. The monitor keeps its native resolution and refresh rate. Nothing is saved permanently.
 
 ```
-python cs2_24inch.py run --panel 26.5
-python cs2_24inch.py test --panel 26.5
-python cs2_24inch.py on --panel 26.5
-python cs2_24inch.py off
-python cs2_24inch.py info
+python cs2_24inch.py run --panel 26.5    turn on, start CS2, turn off when it closes
+python cs2_24inch.py on --panel 26.5     turn on
+python cs2_24inch.py off                 turn off
+python cs2_24inch.py info                show monitor info
 ```
 
-Options: `--size`, `--res`, `--panel`, `--monitor`. Log goes to `cs2_24inch.log`.
+Options: `--size`, `--res`, `--panel`, `--monitor`. Log is saved to `cs2_24inch.log`.
 
-## Screen stuck?
+| Monitor | 24" area |
+|---|---|
+| 27" 2560x1440 | 2274x1280 |
+| 27" 1920x1080 | 1706x960 |
+| 32" 3840x2160 | 2878x1618 |
+| 34" 3440x1440 ultrawide | 2294x1290 |
 
-Click "Restore normal screen" in the app, run `normal-screen.bat`, or reboot.
+</details>
